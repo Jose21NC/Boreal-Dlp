@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boreal DLP</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 1.5rem; display: grid; place-items: center; min-height: 100vh; background: radial-gradient(1200px 800px at 20% 10%, rgba(59,130,246,.18), transparent), linear-gradient(135deg, #0f172a 0%, #0b1020 50%, #0f172a 100%); color: #e5e7eb; position: relative; overflow: hidden; }
+    body::before, body::after {
+      content: "";
+      position: absolute;
+      inset: -10%;
+      background: radial-gradient(600px 600px at 20% 20%, rgba(14,165,233,0.12), transparent 60%), radial-gradient(700px 700px at 80% 30%, rgba(99,102,241,0.12), transparent 65%), radial-gradient(800px 800px at 50% 80%, rgba(16,185,129,0.10), transparent 70%);
+      filter: blur(0px);
+      opacity: 0.9;
+      animation: bgflow 24s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      animation-direction: alternate-reverse;
+      opacity: 0.75;
+    }
+    @keyframes bgflow {
+      0% { transform: translate3d(0,0,0) scale(1); filter: blur(0px); }
+      50% { transform: translate3d(0,-2%,0) scale(1.02); filter: blur(1px); }
+      100% { transform: translate3d(0,2%,0) scale(1.04); filter: blur(2px); }
+    }
+    .card { width: 100%; max-width: 860px; padding: 1.5rem; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; backdrop-filter: blur(10px); box-shadow: 0 12px 28px rgba(0,0,0,.35); background: rgba(17,24,39,.7); transition: box-shadow .2s ease, transform .2s ease; }
+    h1 { font-size: 1.6rem; margin: 0 0 1rem; }
+    form { display: grid; gap: 1rem; }
+    .row { display: grid; grid-template-columns: 1fr; gap: .75rem; }
+    @media (min-width: 720px) { .row { grid-template-columns: 2fr 1fr 1fr; } }
+    input[type="url"], select { padding: .75rem; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); font-size: 1rem; width: 100%; background: rgba(31,41,55,.85); color: #e5e7eb; transition: border-color .2s ease, box-shadow .2s ease; }
+    input[type="url"]::placeholder { color: #94a3b8; }
+    input[type="url"]:focus, select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,.25); }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .opt-item { display: flex; align-items: center; gap: .5rem; }
+    button.primary { padding: .85rem 1rem; border-radius: 12px; border: none; background: linear-gradient(90deg, #2563eb, #0ea5e9); color: #fff; font-weight: 600; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+    button.primary:hover { filter: brightness(1.05); transform: translateY(-1px); box-shadow: 0 8px 16px rgba(14,165,233,.35); }
+    button.primary:disabled { opacity: .6; cursor: not-allowed; }
+    .progress { display: grid; gap: .4rem; }
+    progress { width: 100%; height: 18px; accent-color: #0a7cff; }
+    .meta { display: flex; gap: 1rem; font-size: .9rem; opacity: .85; }
+    .hint { font-size: .9rem; opacity: .8; }
+    .error { color: #c62828; }
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,.75); display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal { width: 100%; max-width: 820px; background: rgba(17,24,39,.95); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,.55); overflow: hidden; color: #e5e7eb; }
+    .modal header { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.08); font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .modal .content { display: grid; grid-template-columns: 1fr; gap: 1rem; padding: 1rem 1.25rem; }
+    @media (min-width: 700px) { .modal .content { grid-template-columns: 220px 1fr; } }
+    .modal .thumb { width: 100%; aspect-ratio: 1/1; background: rgba(31,41,55,.7); border-radius: 10px; overflow: hidden; display: grid; place-items: center; }
+    .modal .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .modal .meta h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
+    .modal .actions { display: flex; gap: .75rem; justify-content: flex-end; padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,.08); }
+    .btn { padding: .7rem 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); background: rgba(31,41,55,.9); color: #e5e7eb; cursor: pointer; }
+    .btn.primary { background: linear-gradient(90deg, #2563eb, #0ea5e9); color: #fff; border: none; }
+    .hidden { display: none !important; }
+
+    .stack { display: grid; gap: .6rem; margin-top: .5rem; }
+    .panel { border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: .75rem 1rem; background: rgba(15,23,42,.65); }
+    .panel h3 { margin: 0 0 .35rem; font-size: 1rem; }
+    .panel small { color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Descargar contenido (YouTube / TikTok / Instagram)</h1>
+    <form id="dl-form">
+      <div class="row">
+        <input id="url" type="url" placeholder="Pega la URL (video, imagen, historia o perfil IG)" required />
+        <select id="quality" style="display:none;"></select>
+        <select id="mode" style="display:none;"></select>
+      </div>
+      <div class="options" id="igOptions" style="display:none;">
+        <label class="opt-item">
+          <input id="igProfilePic" type="checkbox" />
+          Descargar foto de perfil (Instagram)
+        </label>
+        <span class="hint">Para cuentas públicas; historias y posts se detectan automáticamente.</span>
+      </div>
+      <button class="primary" id="btn" type="submit">Iniciar descarga</button>
+      <div class="progress" id="progressBox" style="display:none;">
+        <progress id="bar" value="0" max="100"></progress>
+        <div class="meta">
+          <span id="pct">0%</span>
+          <span id="eta">ETA: —</span>
+          <span id="spd">Velocidad: —</span>
+        </div>
+      </div>
+      <div id="msg" class="hint">Usa una URL pública del contenido.</div>
+    </form>
+  </div>
+
+  <!-- Modal de previsualización/detección -->
+  <div id="backdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+      <header>
+        <span id="m-title">Previsualización</span>
+        <button id="m-close" class="btn">Cerrar</button>
+      </header>
+      <div class="content">
+        <div class="thumb" id="m-thumb"><span>Sin imagen</span></div>
+        <div class="meta">
+          <h2 id="m-heading">Contenido detectado</h2>
+          <div id="m-uploader" class="hint"></div>
+          <div id="m-duration" class="hint"></div>
+          <div id="m-type" class="hint"></div>
+          <div id="m-controls" class="hidden">
+            <label>Opciones de descarga:
+              <select id="m-quality"></select>
+            </label>
+          </div>
+          <div id="m-ig-profile" class="hidden">
+            <label class="opt-item"><input type="checkbox" id="m-igProfilePic" checked /> Descargar foto de perfil</label>
+          </div>
+          <div id="m-error" class="hint error hidden"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="m-cancel" class="btn">Cancelar</button>
+        <button id="m-confirm" class="btn primary">Descargar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('dl-form');
+    const input = document.getElementById('url');
+    const quality = document.getElementById('quality');
+    const mode = document.getElementById('mode');
+    const igOptions = document.getElementById('igOptions');
+    const igProfilePic = document.getElementById('igProfilePic');
+    const btn = document.getElementById('btn');
+    const msg = document.getElementById('msg');
+    const progressBox = document.getElementById('progressBox');
+    const bar = document.getElementById('bar');
+    const pct = document.getElementById('pct');
+    const eta = document.getElementById('eta');
+    const spd = document.getElementById('spd');
+    const backdrop = document.getElementById('backdrop');
+    const mClose = document.getElementById('m-close');
+    const mCancel = document.getElementById('m-cancel');
+    const mConfirm = document.getElementById('m-confirm');
+    const mTitle = document.getElementById('m-title');
+    const mThumb = document.getElementById('m-thumb');
+    const mHeading = document.getElementById('m-heading');
+    const mUploader = document.getElementById('m-uploader');
+    const mDuration = document.getElementById('m-duration');
+    const mType = document.getElementById('m-type');
+    const mControls = document.getElementById('m-controls');
+    const mQuality = document.getElementById('m-quality');
+    // const mAudioOnly eliminado, ahora 'Solo audio' es opción en el select
+    const mIgProfile = document.getElementById('m-ig-profile');
+    const mIgProfilePic = document.getElementById('m-igProfilePic');
+    const mError = document.getElementById('m-error');
+
+    let es = null;
+    let lastProbe = null;
+    let modalConfirmed = false;
+    let selectedQuality = 'best';
+    let selectedAudioOnly = false;
+    let selectedIgProfilePic = false;
+
+    function openModal(){ backdrop.style.display='flex'; }
+    function closeModal(){ backdrop.style.display='none'; }
+    mClose.onclick = closeModal; mCancel.onclick = closeModal;
+
+    function isLikelyURL(v){
+      try { const u = new URL(v); return !!u.host; } catch { return false; }
+    }
+
+    let probeTimer = null;
+    async function probe(url){
+      try {
+        const res = await fetch('/probe', { method:'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'No se pudo detectar.');
+        lastProbe = data;
+        // Construir modal desde datos del backend
+        const t = data.type || data.platform || 'unknown';
+        mError.classList.add('hidden');
+        mHeading.textContent = data.title || 'Contenido detectado';
+        mUploader.textContent = data.uploader ? ('Autor: ' + data.uploader) : '';
+        mDuration.textContent = (data.duration != null) ? ('Duración: ' + data.duration + 's') : '';
+        mType.textContent = 'Tipo: ' + (data.kind ? (t + ' · ' + data.kind) : t);
+        mThumb.innerHTML = '<span>Sin imagen</span>';
+        const thumbUrl = data.thumbnail || data.igProfilePicUrl;
+        if (thumbUrl){ const img=document.createElement('img'); img.src=thumbUrl; img.alt='miniatura'; mThumb.innerHTML=''; mThumb.appendChild(img); }
+        mControls.classList.add('hidden');
+        mIgProfile.classList.add('hidden');
+        mQuality.innerHTML='';
+        if (data.kind === 'profile' || t === 'instagram-profile'){
+          mIgProfile.classList.remove('hidden');
+          mIgProfilePic.checked = true;
+        }
+        if (t === 'youtube' || t === 'tiktok' || data.platform === 'youtube' || data.platform === 'tiktok'){
+          const qs = (data.formats && data.formats.qualities) ? data.formats.qualities : [];
+          mControls.classList.remove('hidden');
+          // Añadir opción de 'Solo audio' al inicio
+          const audioOpt=document.createElement('option'); audioOpt.value='audio'; audioOpt.textContent='Solo audio (M4A/MP3)'; mQuality.appendChild(audioOpt);
+          if (qs.length){
+            qs.sort((a,b)=>b.height-a.height).forEach(q => {
+              if (!q.progressive) return; // solo progresivo para evitar pistas sin audio
+              const opt=document.createElement('option'); opt.value=q.label; opt.textContent=q.label; mQuality.appendChild(opt);
+            });
+            if (data.formats && data.formats.recommended){ mQuality.value = data.formats.recommended; }
+          } else {
+            const opt=document.createElement('option'); opt.value='best'; opt.textContent='Mejor calidad (mezcla)'; mQuality.appendChild(opt);
+          }
+        }
+        if (data.error){ mError.textContent='Aviso: '+data.error; mError.classList.remove('hidden'); }
+        openModal();
+        msg.textContent = 'Contenido detectado: revisa opciones y confirma.';
+        msg.className = 'hint';
+      } catch (e){
+        msg.textContent = 'No se pudo detectar automáticamente (' + (e.message || e) + '). Puedes intentar descargar igualmente.';
+        msg.className = 'hint error';
+      }
+    }
+    mConfirm.addEventListener('click', () => {
+      modalConfirmed = true;
+      selectedQuality = mQuality.value || 'best';
+      selectedAudioOnly = (selectedQuality === 'audio');
+      selectedIgProfilePic = !!mIgProfilePic.checked;
+      closeModal();
+      form.requestSubmit();
+    });
+
+    input.addEventListener('input', () => {
+      const v = (input.value || '').trim();
+      modalConfirmed = false;
+      selectedQuality = 'best';
+      selectedAudioOnly = false;
+      selectedIgProfilePic = false;
+      if (!isLikelyURL(v)) { lastProbe = null; return; }
+      clearTimeout(probeTimer);
+      probeTimer = setTimeout(() => probe(v), 400);
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = (input.value || '').trim();
+      if (!url) {
+        msg.textContent = 'Por favor, ingresa una URL válida.';
+        msg.className = 'hint error';
+        return;
+      }
+
+      // Gating: exigir selección/confirmación de calidad en YouTube/TikTok
+      try {
+        const t = lastProbe ? (lastProbe.type || lastProbe.platform) : null;
+        const host = new URL(url).host.toLowerCase();
+        const isYT = host.includes('youtube.com') || host.includes('youtu.be');
+        const isTT = host.includes('tiktok.com');
+        if (!modalConfirmed && (t === 'youtube' || t === 'tiktok' || isYT || isTT)) {
+          openModal();
+          msg.textContent = 'Selecciona calidad y confirma en el modal.';
+          msg.className = 'hint';
+          return;
+        }
+      } catch {}
+
+      btn.disabled = true;
+      progressBox.style.display = 'grid';
+      msg.textContent = 'Inicializando descarga…';
+      msg.className = 'hint';
+
+      try {
+        const res = await fetch('/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url,
+            quality: modalConfirmed ? selectedQuality : (quality.style.display === 'none' ? 'best' : (quality.value || 'best')),
+            audioOnly: modalConfirmed ? selectedAudioOnly : false,
+            igProfilePic: modalConfirmed ? (selectedIgProfilePic && (lastProbe && (lastProbe.type==='instagram' && lastProbe.kind==='profile'))) : (igProfilePic.checked && url.includes('instagram.com'))
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          msg.textContent = data.error || 'No se pudo iniciar la descarga.';
+          msg.className = 'hint error';
+          btn.disabled = false;
+          return;
+        }
+
+        const id = data.id;
+        es = new EventSource(`/progress/${id}`);
+        es.onmessage = (ev) => {
+          try {
+            const p = JSON.parse(ev.data);
+            const percent = Math.max(0, Math.min(100, p.percent || 0));
+            bar.value = percent;
+            pct.textContent = `${percent.toFixed(1)}%`;
+            eta.textContent = `ETA: ${p.eta != null ? p.eta + 's' : '—'}`;
+            spd.textContent = `Velocidad: ${p.speed ? (p.speed/1024/1024).toFixed(2) + ' MB/s' : '—'}`;
+            if (p.status === 'done') {
+              es.close();
+              msg.textContent = 'Descarga lista. Enviando archivo…';
+              // Abrir descarga del archivo
+              window.location.href = `/file/${id}`;
+              // Limpiar input y ocultar progreso tras iniciar descarga
+              input.value = '';
+              setTimeout(() => { progressBox.style.display='none'; bar.value=0; pct.textContent='0%'; eta.textContent='ETA: —'; spd.textContent='Velocidad: —'; btn.disabled=false; }, 1200);
+            } else if (p.status === 'error') {
+              es.close();
+              msg.textContent = 'Error durante la descarga.';
+              msg.className = 'hint error';
+              btn.disabled = false;
+            }
+          } catch {}
+        };
+        es.onerror = () => {
+          // Ignorar errores transitorios de SSE
+        };
+      } catch (err) {
+        msg.textContent = 'Error: ' + (err?.message || err || 'desconocido');
+        msg.className = 'hint error';
+      }
+    });
+  </script>
+</body>
+</html>
