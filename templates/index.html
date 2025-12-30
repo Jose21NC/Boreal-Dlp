@@ -29,6 +29,8 @@
       50% { transform: translate3d(0,-2%,0) scale(1.02); filter: blur(1px); }
       100% { transform: translate3d(0,2%,0) scale(1.04); filter: blur(2px); }
     }
+    .logo-wrap { display: flex; justify-content: center; margin-bottom: 1rem; z-index: 1; }
+    .logo-wrap img { height: 72px; filter: drop-shadow(0 10px 24px rgba(0,0,0,.35)); }
     .card { width: 100%; max-width: 860px; padding: 1.5rem; border: 1px solid rgba(255,255,255,.08); border-radius: 18px; backdrop-filter: blur(10px); box-shadow: 0 12px 28px rgba(0,0,0,.35); background: rgba(17,24,39,.7); transition: box-shadow .2s ease, transform .2s ease; }
     h1 { font-size: 1.6rem; margin: 0 0 1rem; }
     form { display: grid; gap: 1rem; }
@@ -68,6 +70,9 @@
   </style>
 </head>
 <body>
+  <div class="logo-wrap">
+    <img src="{{ url_for('static', filename='logo.svg') }}" alt="Boreal" />
+  </div>
   <div class="card">
     <h1>Descargar contenido (YouTube / TikTok / Instagram)</h1>
     <form id="dl-form">
